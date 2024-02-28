@@ -1,0 +1,56 @@
+from flask import Flask, render_template_string
+import folium
+from ISS_tracker import latitude, longitude
+
+# create a flask application
+app = Flask(__name__)
+
+@app.route("/")
+
+def home():
+    
+    """Create a map object"""
+    mapObj = folium.Map(location=[latitude, longitude],
+                        zoom_start=2, width=800, height=500)
+
+    # add a marker to the map object
+    folium.Marker([latitude, longitude],
+                  popup="<i>This a marker</i>").add_to(mapObj)
+
+    # render the map object
+    mapObj.get_root().render()
+
+    # derive the script and style tags to be rendered in HTML head
+    header = mapObj.get_root().header.render()
+
+    # derive the div container to be rendered in the HTML body
+    body_html = mapObj.get_root().html.render()
+
+    # derive the JavaScript to be rendered in the HTML body
+    script = mapObj.get_root().script.render()
+
+    # return a web page with folium map components embeded in it. You can also use render_template.
+    return render_template_string(
+        """
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    {{ header|safe }}
+                </head>
+                <body>
+                    <h1>ISS TRACKER</h1>
+                    {{ body_html|safe }}
+                    <h3>CURRENT POSITION !</h3>
+                    <script>
+                        {{ script|safe }}
+                    </script>
+                </body>
+            </html>
+        """,
+        header=header,
+        body_html=body_html,
+        script=script,
+    )
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=50100, debug=True)
